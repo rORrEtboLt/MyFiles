@@ -1,0 +1,23 @@
+node_modules/
+.env
+blobs/
+build*/
+.DS_Store
+mobile/android/.gradle/
+mobile/android/app/build/
+
+# editor / tooling caches (contain absolute local paths)
+.cache/
+.vscode/
+.idea/
+compile_commands.json
+*.xcuserstate
+xcuserdata/
+
+# local config and secrets
+.env.*
+*.mobileprovision
+*.p12
+*.keystore
+*.jks
+local.properties

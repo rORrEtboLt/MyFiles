@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- SDL_GetPrefPath on Android is inside the app's files dir; labels are written to its tmp/ -->
+    <files-path name="files" path="." />
+</paths>

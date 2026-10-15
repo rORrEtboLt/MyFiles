@@ -1,0 +1,26 @@
+{
+  "name": "myfiles-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Sync + search API for MyFiles (physical file/envelope document index)",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "migrate": "node src/migrate.js",
+    "test": "node --test --test-concurrency=1 'test/**/*.test.js'"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@hapi/boom": "^10.0.1",
+    "@hapi/hapi": "^21.4.10",
+    "@hapi/jwt": "^3.2.4",
+    "bcryptjs": "^3.0.3",
+    "joi": "^18.2.9",
+    "pg": "^8.23.1",
+    "qrcode": "^1.5.4"
+  }
+}
