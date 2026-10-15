@@ -21,3 +21,4 @@ xcuserdata/
 *.keystore
 *.jks
 local.properties
+.gstack/

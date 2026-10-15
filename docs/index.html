@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyFiles – find any paper in seconds</title>
+<meta name="description" content="Number your envelopes, scan what's inside, and search every page on your phone – fully offline. Sync to your own server only if you want a backup.">
+<meta property="og:title" content="MyFiles – find any paper in seconds">
+<meta property="og:description" content="Offline first. Cloud if you want it. Scan, read and search your paper documents on your phone, and know exactly which envelope holds the original.">
+<meta property="og:image" content="https://rorretbolt.github.io/MyFiles/img/og.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="img/favicon.png">
+<link rel="apple-touch-icon" href="img/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F4F1EA; --surface: #FFFFFF; --surface-2: #EBE6DA; --border: #DAD4C6;
+  --text: #1D1D1B; --muted: #5F5E58; --teal: #1F5F5B; --teal-deep: #144542; --teal-soft: #DCEAE7;
+  --amber: #9A5B13; --folder: #F2B556; --folder-deep: #E39A31; --on-teal: #FFFFFF;
+  --code-bg: #1E2A29; --code-text: #E6F0EE; --shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(31,95,91,.10);
+  --radius: 14px; --max: 1120px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111716; --surface: #18201F; --surface-2: #202A28; --border: #2C3836;
+    --text: #ECEFEA; --muted: #A7AFAA; --teal: #6FC2B8; --teal-deep: #0E2E2C; --teal-soft: #1C3431;
+    --amber: #F2B556; --on-teal: #0B1514; --code-bg: #0B1110; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111716; --surface: #18201F; --surface-2: #202A28; --border: #2C3836;
+  --text: #ECEFEA; --muted: #A7AFAA; --teal: #6FC2B8; --teal-deep: #0E2E2C; --teal-soft: #1C3431;
+  --amber: #F2B556; --on-teal: #0B1514; --code-bg: #0B1110; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 "Noto Sans", system-ui, -apple-system, "Segoe UI", sans-serif; }
+img { max-width: 100%; height: auto; display: block; }
+a { color: var(--teal); text-underline-offset: 3px; }
+code, pre, kbd { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+:not(pre) > code { background: var(--surface-2); padding: .1em .4em; border-radius: 6px; font-size: .9em; overflow-wrap: anywhere; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 16px 18px; border-radius: 12px; overflow-x: auto; font-size: 14px; line-height: 1.55; margin: 12px 0 20px; }
+pre .c { color: #8FB3AD; }
+.wrap { max-width: var(--max); margin: 0 auto; padding: 0 16px; }
+.skip { position: absolute; left: -999px; } .skip:focus { left: 16px; top: 8px; z-index: 99; background: var(--surface); padding: 8px 12px; border-radius: 8px; }
+
+/* ---- header + tabs ---- */
+header.top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--border); }
+.bar { display: flex; align-items: center; gap: 12px; height: 64px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; color: var(--text); text-decoration: none; margin-right: auto; }
+.brand img { width: 36px; height: 36px; border-radius: 9px; }
+.icon-btn { background: none; border: 1px solid var(--border); color: var(--text); border-radius: 10px; height: 38px; min-width: 38px; padding: 0 10px; cursor: pointer; font: inherit; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-size: 14px; font-weight: 600; }
+.icon-btn:hover { background: var(--surface-2); }
+.icon-btn svg { width: 18px; height: 18px; }
+nav.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding-bottom: 10px; }
+nav.tabs::-webkit-scrollbar { display: none; }
+nav.tabs button { flex: none; border: 0; background: none; color: var(--muted); font: 600 15px/1 "Noto Sans", sans-serif; padding: 10px 14px; border-radius: 999px; cursor: pointer; }
+nav.tabs button:hover { color: var(--text); background: var(--surface-2); }
+nav.tabs button[aria-selected="true"] { background: var(--teal); color: var(--on-teal); }
+nav.tabs button:focus-visible, .btn:focus-visible, .icon-btn:focus-visible, .seg button:focus-visible { outline: 3px solid var(--folder); outline-offset: 2px; }
+
+section[role="tabpanel"] { padding: 40px 0 72px; }
+section[role="tabpanel"][hidden] { display: none; }
+h1, h2, h3 { line-height: 1.2; letter-spacing: -0.01em; }
+h2 { font-size: clamp(26px, 4vw, 34px); margin: 0 0 12px; }
+h3 { font-size: 20px; margin: 28px 0 8px; }
+.lead { font-size: 18px; color: var(--muted); max-width: 720px; margin: 0 0 28px; }
+.eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 700; color: var(--amber); margin: 0 0 8px; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 50px; padding: 0 22px; border-radius: 12px; font-weight: 700; text-decoration: none; border: 1px solid transparent; cursor: pointer; font-size: 16px; }
+.btn.primary { background: var(--teal); color: var(--on-teal); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.ghost { border-color: var(--border); color: var(--text); background: var(--surface); }
+.btn.ghost:hover { background: var(--surface-2); }
+.btn svg { width: 20px; height: 20px; }
+
+/* ---- hero ---- */
+.hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center; padding-top: 8px; }
+.hero h1 { font-size: clamp(36px, 6vw, 60px); font-weight: 800; margin: 0 0 18px; letter-spacing: -0.02em; }
+.hero h1 em { font-style: normal; color: var(--teal); }
+.hero p.lead { font-size: 19px; }
+.cta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 22px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.chips li { background: var(--teal-soft); color: var(--teal); font-weight: 600; font-size: 14px; padding: 6px 12px; border-radius: 999px; }
+.phones { position: relative; height: 560px; }
+.phone { position: absolute; width: 250px; border-radius: 34px; padding: 10px; background: #0f1413; box-shadow: 0 30px 60px rgba(20,69,66,.28), 0 4px 10px rgba(0,0,0,.15); }
+.phone img { border-radius: 26px; width: 100%; height: auto; aspect-ratio: 420/749; object-fit: cover; object-position: top; background: #F4F1EA; }
+.phone.a { left: 0; top: 40px; transform: rotate(-4deg); }
+.phone.b { right: 0; top: 0; transform: rotate(4deg); z-index: 1; }
+
+/* ---- ad band: offline + cloud ---- */
+.ad { margin: 64px 0 0; border-radius: 22px; overflow: hidden; background: linear-gradient(135deg, var(--teal-deep), #1F5F5B 60%, #27766F); color: #fff; position: relative; }
+.ad-inner { padding: 40px 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; position: relative; z-index: 1; }
+.ad h2 { color: #fff; font-size: clamp(28px, 4.4vw, 42px); margin: 0 0 10px; grid-column: 1 / -1; }
+.ad h2 span { color: var(--folder); }
+.ad .sub { grid-column: 1 / -1; margin: 0 0 6px; color: #D7E8E5; font-size: 18px; max-width: 760px; }
+.mode { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); border-radius: 16px; padding: 22px; }
+.mode h3 { margin: 0 0 4px; color: #fff; display: flex; align-items: center; gap: 10px; }
+.mode .tag { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; padding: 3px 8px; border-radius: 999px; }
+.mode.offline .tag { background: var(--folder); color: #3b2506; }
+.mode.cloud .tag { background: rgba(255,255,255,.18); color: #fff; }
+.mode p { color: #D7E8E5; margin: 0 0 10px; }
+.mode ul { margin: 0; padding-left: 20px; color: #fff; }
+.mode li { margin: 4px 0; }
+.ad .fine { grid-column: 1 / -1; color: #BFD8D4; font-size: 14px; margin: 0; }
+.ad-art { position: absolute; right: -60px; bottom: -80px; width: 340px; opacity: .10; z-index: 0; }
+
+/* ---- generic cards / grids ---- */
+.grid { display: grid; gap: 16px; }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g2 { grid-template-columns: repeat(2, 1fr); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow); }
+.card h3 { margin: 10px 0 6px; font-size: 18px; }
+.card p { margin: 0; color: var(--muted); }
+.ico { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--teal-soft); color: var(--teal); }
+.ico svg { width: 24px; height: 24px; }
+.section-gap { margin-top: 64px; }
+
+.gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+.shot { margin: 0; }
+.shot .frame { border-radius: 22px; padding: 7px; background: #0f1413; box-shadow: var(--shadow); }
+.shot img { border-radius: 16px; height: auto; aspect-ratio: 420/749; object-fit: cover; object-position: top; background: #F4F1EA; width: 100%; }
+.shot figcaption { font-size: 14px; color: var(--muted); margin-top: 10px; text-align: center; }
+
+/* ---- steps ---- */
+.steps { counter-reset: s; display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.steps > li { counter-increment: s; display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; align-items: start; }
+.steps > li::before { content: counter(s); width: 44px; height: 44px; border-radius: 50%; background: var(--teal); color: var(--on-teal); display: grid; place-items: center; font-weight: 800; }
+.steps > li > div { min-width: 0; }
+.steps h3 { margin: 6px 0 4px; font-size: 18px; }
+.steps p { margin: 0; color: var(--muted); }
+
+.flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 8px 0 0; }
+.flow .card { text-align: left; position: relative; }
+.flow .n { font-weight: 800; color: var(--amber); font-size: 14px; letter-spacing: .08em; }
+
+.diagram { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+.diagram { overflow-x: auto; }
+.diagram svg { width: 100%; min-width: 680px; height: auto; }
+.diagram text { font-family: "Noto Sans", sans-serif; }
+
+.callout { border-left: 4px solid var(--folder); background: var(--surface); border-radius: 10px; padding: 14px 18px; margin: 18px 0; box-shadow: var(--shadow); }
+.callout strong { color: var(--text); }
+.callout.info { border-left-color: var(--teal); }
+
+table { width: 100%; border-collapse: collapse; font-size: 15px; background: var(--surface); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { background: var(--surface-2); font-weight: 700; }
+tr:last-child td { border-bottom: 0; }
+.table-scroll { overflow-x: auto; border-radius: 12px; }
+.ok { color: #2E7D4F; font-weight: 700; } .warn { color: var(--amber); font-weight: 700; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ok { color: #7FD3A0; } }
+:root[data-theme="dark"] .ok { color: #7FD3A0; }
+
+/* segmented control inside Install */
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 12px; margin: 4px 0 20px; }
+.seg button { border: 0; background: none; font: 600 15px "Noto Sans", sans-serif; color: var(--muted); padding: 9px 14px; border-radius: 9px; cursor: pointer; }
+.seg button[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+.platform[hidden] { display: none; }
+
+.use-row { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 28px; align-items: start; padding: 26px 0; border-bottom: 1px solid var(--border); }
+.use-row:last-child { border-bottom: 0; }
+.use-row h3 { margin-top: 0; }
+.use-row .shot .frame { border-radius: 20px; }
+
+details { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0 18px; margin: 10px 0; box-shadow: var(--shadow); }
+summary { cursor: pointer; font-weight: 700; padding: 16px 0; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; color: var(--teal); font-size: 22px; line-height: 1; }
+details[open] summary::after { content: "–"; }
+details > div { padding: 0 0 16px; color: var(--muted); }
+
+footer { border-top: 1px solid var(--border); padding: 28px 0 40px; color: var(--muted); font-size: 14px; }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; }
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; }
+  .phones { height: 430px; max-width: 420px; margin: 0 auto; width: 100%; }
+  .phone { width: 190px; border-radius: 28px; padding: 8px; }
+  .phone img { border-radius: 21px; }
+  .g3, .flow { grid-template-columns: 1fr 1fr; }
+  .gallery { grid-template-columns: repeat(2, 1fr); }
+  .ad-inner { grid-template-columns: 1fr; padding: 28px 20px; }
+}
+@media (max-width: 600px) {
+  .g3, .g2, .flow { grid-template-columns: 1fr; }
+  .use-row { grid-template-columns: 1fr; }
+  .use-row .shot { max-width: 220px; }
+  .bar .hide-sm { display: none; }
+  .phones { height: 370px; }
+  .phone { width: 160px; }
+  .cta .btn { flex: 1 1 100%; }
+  section[role="tabpanel"] { padding-top: 28px; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="wrap">
+    <div class="bar">
+      <a class="brand" href="#home" data-tab-link="home"><img src="img/icon.png" alt="" width="36" height="36">MyFiles</a>
+      <button class="icon-btn" id="theme" type="button" aria-label="Switch colour theme" title="Switch colour theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+      <a class="icon-btn" href="https://github.com/rORrEtboLt/MyFiles" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.7 5.4-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg>
+        <span class="hide-sm">GitHub</span>
+      </a>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button role="tab" id="t-home" aria-controls="home" aria-selected="true">Home</button>
+      <button role="tab" id="t-how" aria-controls="how" aria-selected="false" tabindex="-1">How it works</button>
+      <button role="tab" id="t-install" aria-controls="install" aria-selected="false" tabindex="-1">Install</button>
+      <button role="tab" id="t-use" aria-controls="use" aria-selected="false" tabindex="-1">Using MyFiles</button>
+      <button role="tab" id="t-server" aria-controls="server" aria-selected="false" tabindex="-1">Your own cloud</button>
+      <button role="tab" id="t-faq" aria-controls="faq" aria-selected="false" tabindex="-1">FAQ &amp; community</button>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<!-- ================================================================ HOME -->
+<section role="tabpanel" id="home" aria-labelledby="t-home">
+  <div class="wrap">
+    <div class="hero">
+      <div>
+        <p class="eyebrow">Your paper documents, on your phone</p>
+        <h1>Find any paper <em>in seconds</em> – even offline.</h1>
+        <p class="lead">Number your envelopes and box files. Scan what goes inside. MyFiles reads every page on your phone, so you can search for a word and see straight away which envelope holds the original.</p>
+        <div class="cta">
+          <a class="btn primary" href="#install" data-tab-link="install">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 21h16"/></svg>
+            Install MyFiles</a>
+          <a class="btn ghost" href="#how" data-tab-link="how">See how it works</a>
+        </div>
+        <ul class="chips" aria-label="Highlights">
+          <li>Works offline</li><li>Text read on your phone</li><li>QR or handwritten labels</li><li>PDF of every document</li><li>Your own server, optional</li>
+        </ul>
+      </div>
+      <div class="phones" aria-hidden="true">
+        <div class="phone a"><img src="img/home.webp" alt="" loading="eager" width="420" height="749"></div>
+        <div class="phone b"><img src="img/search.webp" alt="" loading="eager" width="420" height="749"></div>
+      </div>
+    </div>
+
+    <!-- Advertisement band -->
+    <aside class="ad" aria-labelledby="ad-title">
+      <div class="ad-inner">
+        <h2 id="ad-title">Offline first. <span>Cloud if you want it.</span></h2>
+        <p class="sub">Everything you need works with no internet and no account. Add a server only when you want a backup or a second device. It runs on your own computer, not ours.</p>
+        <div class="mode offline">
+          <h3>On your phone <span class="tag">Always</span></h3>
+          <p>No signal, no account, no problem.</p>
+          <ul>
+            <li>Scan multi-page documents with edge detection</li>
+            <li>Text recognised on the device, including handwritten file numbers on iPhone</li>
+            <li>Instant search across every page you've scanned</li>
+            <li>Print QR labels, share PDFs, all offline</li>
+          </ul>
+        </div>
+        <div class="mode cloud">
+          <h3>Your own cloud <span class="tag">Optional</span></h3>
+          <p>Switch it on when you're ready.</p>
+          <ul>
+            <li>Back up scans to a server you control</li>
+            <li>Use more than one phone, all kept in sync</li>
+            <li>Search and download PDFs from the server</li>
+            <li>Edits made offline merge when you reconnect</li>
+          </ul>
+        </div>
+        <p class="fine">No subscription and no ads in the app. The server is a small Node.js + PostgreSQL service that you run yourself.</p>
+      </div>
+      <svg class="ad-art" viewBox="0 0 100 100" aria-hidden="true"><rect x="10" y="22" width="80" height="62" rx="6" fill="#fff"/><rect x="10" y="14" width="30" height="14" rx="4" fill="#fff"/></svg>
+    </aside>
+
+    <div class="section-gap">
+      <p class="eyebrow">Why MyFiles</p>
+      <h2>The paper stays in the envelope. The answer's in your pocket.</h2>
+      <p class="lead">Bills, deeds, certificates, warranties, medical reports. You keep the originals, and MyFiles remembers where each one is.</p>
+      <div class="grid g3">
+        <div class="card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M8 13h8"/></svg></div>
+          <h3>Numbered files</h3><p>Give each envelope a number like F-0042. Write it on the envelope or print a QR label. "f 42" and "F-0042" are treated as the same file.</p></div>
+        <div class="card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2"/><path d="M7 9h10M7 12h10M7 15h6"/></svg></div>
+          <h3>Scan &amp; read</h3><p>Photograph every page. The text is read on your phone, the title is filled in for you, and all the pages are saved as one PDF.</p></div>
+        <div class="card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></div>
+          <h3>Search everything</h3><p>Type a consumer number, a name or a word you remember. Results show the document and the file it's kept in.</p></div>
+        <div class="card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg></div>
+          <h3>Scan a label, open the file</h3><p>Point the camera at an envelope's QR label or handwritten number, and that file opens with everything inside it.</p></div>
+        <div class="card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10M7 11h10M7 15h4"/><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/></svg></div>
+          <h3>Tags you can see</h3><p>Tag documents "tax", "insurance" or "house". Each file shows its tags on the home screen, so you can tell what's inside at a glance.</p></div>
+        <div class="card"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></div>
+          <h3>Private by default</h3><p>Scans and the search index live on your phone. Nothing leaves it unless you connect your own server.</p></div>
+      </div>
+    </div>
+
+    <div class="section-gap">
+      <p class="eyebrow">The app</p>
+      <h2>A quick look</h2>
+      <div class="gallery">
+        <figure class="shot"><div class="frame"><img src="img/home.webp" alt="Home screen listing files F-0042, F-0043, F-0044 and B-007, each with its tags" loading="lazy" width="420" height="749"></div><figcaption>Your files, with tags</figcaption></figure>
+        <figure class="shot"><div class="frame"><img src="img/search.webp" alt="Search for 'bill' finds an electricity bill in file F-0042, with the matching words highlighted" loading="lazy" width="420" height="749"></div><figcaption>Search finds the envelope</figcaption></figure>
+        <figure class="shot"><div class="frame"><img src="img/document.webp" alt="A two-page document with a button to view or share it as a PDF" loading="lazy" width="420" height="749"></div><figcaption>Pages and one PDF</figcaption></figure>
+        <figure class="shot"><div class="frame"><img src="img/label.webp" alt="A printable label with a QR code and the file number F-0042" loading="lazy" width="420" height="749"></div><figcaption>Printable QR labels</figcaption></figure>
+      </div>
+      <p style="color:var(--muted);font-size:14px;margin-top:14px">Screenshots use sample data.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ HOW IT WORKS -->
+<section role="tabpanel" id="how" aria-labelledby="t-how" hidden>
+  <div class="wrap">
+    <p class="eyebrow">How it works</p>
+    <h2>From a pile of paper to an answer in four steps</h2>
+    <p class="lead">MyFiles connects each physical envelope to its digital copy through one simple thing: the file number.</p>
+    <div class="flow">
+      <div class="card"><div class="n">STEP 1</div><h3>Number the envelope</h3><p>Create a file. The app suggests the next number (F-0042 → F-0043). Print the QR label or write the number by hand.</p></div>
+      <div class="card"><div class="n">STEP 2</div><h3>Scan what goes in</h3><p>Photograph each page. The phone straightens it, reads the text and saves all the pages as one PDF.</p></div>
+      <div class="card"><div class="n">STEP 3</div><h3>Search any time</h3><p>Search titles, tags and every word on every page, even in flight mode.</p></div>
+      <div class="card"><div class="n">STEP 4</div><h3>Pull the right envelope</h3><p>The result tells you the file number. Scan the label to confirm you've got the right one.</p></div>
+    </div>
+
+    <h3 style="margin-top:48px">What runs where</h3>
+    <div class="diagram" role="img" aria-label="Diagram: the phone holds the scans, the search index and the PDFs, and works on its own. An optional link syncs changes and scans with your own server, which runs Node.js and PostgreSQL and can serve search and PDFs to other devices.">
+      <svg viewBox="0 0 960 330" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--teal)"/></marker>
+        </defs>
+        <!-- phone -->
+        <rect x="20" y="20" width="380" height="290" rx="22" stroke-width="2" style="fill:var(--teal-soft);stroke:var(--teal)"/>
+        <text x="44" y="56" font-size="20" font-weight="800" style="fill:var(--text)">Your phone</text>
+        <text x="44" y="80" font-size="14" style="fill:var(--muted)">Works fully offline</text>
+        <g font-size="15" style="fill:var(--text)">
+          <rect x="44" y="98" width="332" height="44" rx="10" style="fill:var(--surface);stroke:var(--border)"/><text x="60" y="126">Camera → page detection → text reading</text>
+          <rect x="44" y="152" width="332" height="44" rx="10" style="fill:var(--surface);stroke:var(--border)"/><text x="60" y="180">SQLite + full-text index (search)</text>
+          <rect x="44" y="206" width="160" height="44" rx="10" style="fill:var(--surface);stroke:var(--border)"/><text x="60" y="234">Page images</text>
+          <rect x="216" y="206" width="160" height="44" rx="10" style="fill:var(--surface);stroke:var(--border)"/><text x="232" y="234">PDF per document</text>
+          <text x="44" y="284" font-size="13" style="fill:var(--muted)">SDL3 app in C · iPhone (Apple Vision) · Android (ML Kit)</text>
+        </g>
+        <!-- link -->
+        <line x1="410" y1="140" x2="550" y2="140" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#arr)" style="stroke:var(--teal)"/>
+        <line x1="550" y1="190" x2="410" y2="190" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#arr)" style="stroke:var(--teal)"/>
+        <text x="480" y="128" font-size="14" text-anchor="middle" style="fill:var(--text)">push changes + scans</text>
+        <text x="480" y="214" font-size="14" text-anchor="middle" style="fill:var(--text)">pull changes + scans</text>
+        <text x="480" y="250" font-size="13" text-anchor="middle" font-weight="700" style="fill:var(--amber)">only when online</text>
+        <text x="480" y="268" font-size="13" text-anchor="middle" font-weight="700" style="fill:var(--amber)">and signed in</text>
+        <!-- server -->
+        <rect x="560" y="20" width="380" height="290" rx="22" stroke-width="2" stroke-dasharray="8 6" style="fill:var(--surface);stroke:var(--border)"/>
+        <text x="584" y="56" font-size="20" font-weight="800" style="fill:var(--text)">Your own server</text>
+        <text x="584" y="80" font-size="14" style="fill:var(--muted)">Optional · runs on your computer or VPS</text>
+        <g font-size="15" style="fill:var(--text)">
+          <rect x="584" y="98" width="332" height="44" rx="10" style="fill:var(--surface-2)"/><text x="600" y="126">Accounts + sync API (Node.js, Hapi)</text>
+          <rect x="584" y="152" width="332" height="44" rx="10" style="fill:var(--surface-2)"/><text x="600" y="180">PostgreSQL with full-text search</text>
+          <rect x="584" y="206" width="160" height="44" rx="10" style="fill:var(--surface-2)"/><text x="600" y="234">Scan storage</text>
+          <rect x="756" y="206" width="160" height="44" rx="10" style="fill:var(--surface-2)"/><text x="772" y="234">PDFs + labels</text>
+          <text x="584" y="284" font-size="13" style="fill:var(--muted)">Other phones sync from here too</text>
+        </g>
+      </svg>
+    </div>
+
+    <h3 style="margin-top:48px">The details that make it reliable</h3>
+    <div class="grid g2">
+      <div class="card"><h3>File numbers that forgive handwriting</h3><p>Capitals, spaces, punctuation and leading zeros don't matter: <code>F-0042</code>, <code>f 42</code> and <code>F_042</code> all mean file <code>F-42</code>. When text is read from a handwritten label, common slips like the letter O for zero are corrected before the app looks for a match.</p></div>
+      <div class="card"><h3>Sync that survives being offline</h3><p>Every change is marked on the phone until it's sent. When you're back online, changes go up, then everything changed on other phones comes down. If the same item was edited in two places, the newest edit wins. Deletions sync too.</p></div>
+      <div class="card"><h3>Two phones, one envelope</h3><p>A file's ID is its file number. If two phones both create "F-42" while offline, they end up with one file after syncing, not two.</p></div>
+      <div class="card"><h3>Search that works offline</h3><p>Titles, tags, every recognised word and the file numbers are indexed on the phone with SQLite FTS5. Results appear as you type, with matching words highlighted.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ INSTALL -->
+<section role="tabpanel" id="install" aria-labelledby="t-install" hidden>
+  <div class="wrap">
+    <p class="eyebrow">Install</p>
+    <h2>Get MyFiles on your phone</h2>
+    <p class="lead">MyFiles isn't in the App Store or Play Store yet. For now you build it from the source code on GitHub, which takes about 15 minutes the first time.</p>
+
+    <div class="seg" role="tablist" aria-label="Platform">
+      <button role="tab" aria-selected="true" data-platform="ios">iPhone</button>
+      <button role="tab" aria-selected="false" data-platform="android">Android</button>
+      <button role="tab" aria-selected="false" data-platform="desktop">Mac / desktop</button>
+    </div>
+
+    <div class="platform" data-platform="ios">
+      <div class="callout info"><strong>Status:</strong> <span class="ok">Works.</span> Built, installed and run on an iPhone 12 mini (iOS 26). Needs a Mac with Xcode and an Apple Developer account. A free account works too, but apps signed with one expire after 7 days.</div>
+      <ol class="steps">
+        <li><div><h3>Install the tools</h3><p>Xcode from the Mac App Store, then CMake:</p><pre>brew install cmake</pre></div></li>
+        <li><div><h3>Get the code</h3><pre>git clone https://github.com/rORrEtboLt/MyFiles.git
+cd MyFiles/mobile</pre></div></li>
+        <li><div><h3>Find your team ID</h3><p>It's the <code>OU=</code> value of your Apple Development certificate:</p><pre>security find-certificate -c "Apple Development" -p | openssl x509 -noout -subject</pre></div></li>
+        <li><div><h3>Build for your phone</h3><p>The first build downloads and compiles SDL3, which takes a few minutes. Replace the bundle ID and team ID with your own.</p>
+<pre>cmake -S . -B build-iosdev -G Xcode -DCMAKE_SYSTEM_NAME=iOS \
+  -DCMAKE_OSX_DEPLOYMENT_TARGET=16.0 -DCMAKE_OSX_SYSROOT=iphoneos \
+  -DCMAKE_OSX_ARCHITECTURES=arm64 \
+  -DMYFILES_BUNDLE_ID=com.yourname.myfiles -DMYFILES_TEAM_ID=ABCDE12345
+xcodebuild -project build-iosdev/MyFiles.xcodeproj -scheme MyFiles \
+  -configuration Release -allowProvisioningUpdates build</pre></div></li>
+        <li><div><h3>Install on your iPhone</h3><p>Connect the phone by cable (or the same Wi-Fi) and turn on <em>Developer Mode</em> under Settings → Privacy &amp; Security.</p>
+<pre>xcrun devicectl list devices
+xcrun devicectl device install app --device &lt;id&gt; build-iosdev/Release-iphoneos/MyFiles.app</pre>
+<p>Prefer clicking? Open <code>build-iosdev/MyFiles.xcodeproj</code> in Xcode, pick your phone and press Run.</p></div></li>
+      </ol>
+    </div>
+
+    <div class="platform" data-platform="android" hidden>
+      <div class="callout"><strong>Status:</strong> <span class="warn">Experimental.</span> The Android app is fully written, using Google ML Kit for scanning, text reading and QR codes, but it hasn't been built or run on a device yet. Expect to fix a few build errors along the way. Help is very welcome.</div>
+      <ol class="steps">
+        <li><div><h3>Install the tools</h3><p>Android Studio, then from its SDK Manager: <strong>NDK 27</strong> and <strong>CMake 3.31</strong>.</p></div></li>
+        <li><div><h3>Get the code</h3><pre>git clone https://github.com/rORrEtboLt/MyFiles.git
+cd MyFiles/mobile/android
+./fetch-sdl-java.sh   <span class="c"># SDL's Android Java files</span></pre></div></li>
+        <li><div><h3>Open and run</h3><p>Open the <code>mobile/android</code> folder in Android Studio, connect a phone with USB debugging enabled, and press Run. From a terminal: <code>gradle wrapper &amp;&amp; ./gradlew installDebug</code>.</p></div></li>
+      </ol>
+      <div class="callout info">On Android, ML Kit reads printed text well but handwriting less reliably, so printed QR labels are the dependable way to identify envelopes.</div>
+    </div>
+
+    <div class="platform" data-platform="desktop" hidden>
+      <div class="callout info"><strong>Status:</strong> <span class="ok">Works.</span> The desktop build is for trying the app and for development. "Scanning" opens a file picker, and text is read by <code>tesseract</code> if it's installed.</div>
+      <ol class="steps">
+        <li><div><h3>Install dependencies (macOS)</h3><pre>brew install cmake sdl3 sdl3_ttf sdl3_image
+brew install tesseract   <span class="c"># optional: read text from picked images</span></pre></div></li>
+        <li><div><h3>Build and run</h3><pre>git clone https://github.com/rORrEtboLt/MyFiles.git
+cd MyFiles/mobile
+cmake -S . -B build &amp;&amp; cmake --build build -j
+./build/test_core          <span class="c"># run the tests</span>
+open build/MyFiles.app</pre></div></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ USE -->
+<section role="tabpanel" id="use" aria-labelledby="t-use" hidden>
+  <div class="wrap">
+    <p class="eyebrow">Guide</p>
+    <h2>Using MyFiles</h2>
+    <p class="lead">One habit to keep: every paper goes into a numbered envelope, and every envelope has a file in the app.</p>
+
+    <div class="use-row">
+      <div>
+        <h3>1. Create a file for an envelope</h3>
+        <p>Tap <strong>New file</strong>. The next number is filled in for you; change it if your envelopes already have numbers. Add a title ("House papers") and where it's kept ("Steel cupboard, shelf 2").</p>
+        <p>Have the papers in hand? Tap <strong>Save &amp; scan pages</strong> to go straight to the scanner.</p>
+      </div>
+      <figure class="shot"><div class="frame"><img src="img/new-file.webp" alt="New file form with file number, title, location, notes and a Save & scan pages button" loading="lazy" width="420" height="749"></div></figure>
+    </div>
+
+    <div class="use-row">
+      <div>
+        <h3>2. Label the envelope</h3>
+        <p>Open the file and tap <strong>Label</strong>, then <strong>Share / print label</strong> to print it with AirPrint or save it. Or just write the number on the envelope in big, clear letters. Both work with <em>Scan label</em>.</p>
+        <p>Labelling lots of envelopes at once? With a server connected, <em>Settings → Print a sheet of numbered labels</em> gives you an A4 sheet of 10.</p>
+      </div>
+      <figure class="shot"><div class="frame"><img src="img/label.webp" alt="Label screen with a QR code and the file number" loading="lazy" width="420" height="749"></div></figure>
+    </div>
+
+    <div class="use-row">
+      <div>
+        <h3>3. Scan documents into it</h3>
+        <p>Inside a file, tap <strong>Scan document</strong> and photograph each page. The edges are detected for you. When you tap <em>Save</em>, the text is read, a title is suggested from the first line, and all the pages become one PDF.</p>
+        <p>Open a document to add more pages, read the recognised text, set the date and tags, or move it to another file by changing its file number.</p>
+      </div>
+      <figure class="shot"><div class="frame"><img src="img/document.webp" alt="Document screen showing which file the paper copy is in, its pages, and a PDF button" loading="lazy" width="420" height="749"></div></figure>
+    </div>
+
+    <div class="use-row">
+      <div>
+        <h3>4. Find anything</h3>
+        <p>Type in the search box on the home screen: a word, a number, a name, a tag or a file number. Each result shows <strong>which file</strong> holds the paper, with the matching words highlighted.</p>
+        <p>Search works offline, matches the start of words (typing "elec" finds "electricity"), and only shows results that contain every word you typed.</p>
+      </div>
+      <figure class="shot"><div class="frame"><img src="img/search.webp" alt="Search results showing a document and the file it's in" loading="lazy" width="420" height="749"></div></figure>
+    </div>
+
+    <div class="use-row">
+      <div>
+        <h3>5. Identify an envelope</h3>
+        <p>Found an envelope and not sure what's in it? Tap <strong>Scan label</strong> and photograph its QR label or handwritten number, and the matching file opens. If no file matches, MyFiles suggests creating one with that number.</p>
+      </div>
+      <figure class="shot"><div class="frame"><img src="img/file.webp" alt="A file showing its documents and their tags" loading="lazy" width="420" height="749"></div></figure>
+    </div>
+
+    <div class="use-row">
+      <div>
+        <h3>6. Share a PDF</h3>
+        <p>On any document, tap <strong>View / share PDF</strong> to preview it, print it, save it to Files or send it. It's named after the file and title, e.g. <code>F-0042 Electricity bill.pdf</code>.</p>
+        <h3 style="margin-top:22px">7. Turn on backup (optional)</h3>
+        <p>In <strong>Settings</strong>, enter your server address, email and a password, then tap <em>Create account</em>. From then on the app syncs on its own when you're online. See <a href="#server" data-tab-link="server">Your own cloud</a>.</p>
+      </div>
+      <figure class="shot"><div class="frame"><img src="img/home.webp" alt="Home screen with files and their tags" loading="lazy" width="420" height="749"></div></figure>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ SERVER -->
+<section role="tabpanel" id="server" aria-labelledby="t-server" hidden>
+  <div class="wrap">
+    <p class="eyebrow">Optional</p>
+    <h2>Run your own cloud</h2>
+    <p class="lead">The server backs up your scans and keeps several phones in sync. It's small: Node.js 20+ and PostgreSQL, on a home computer, a Raspberry Pi-class box or a cheap VPS.</p>
+
+    <h3>Start it</h3>
+<pre>git clone https://github.com/rORrEtboLt/MyFiles.git
+cd MyFiles/backend
+npm install
+createdb myfiles
+DATABASE_URL=postgres://localhost/myfiles \
+JWT_SECRET=$(openssl rand -hex 32) \
+npm start                 <span class="c"># creates the tables, listens on :4000</span>
+npm test                  <span class="c"># optional: integration tests against Postgres</span></pre>
+
+    <h3>Connect your phone</h3>
+    <p>In the app open <strong>Settings</strong>, set the server to <code>http://&lt;your computer's IP&gt;:4000</code> (on a Mac: <code>ipconfig getifaddr en0</code>), then tap <em>Create account</em>. Your phone needs to be on the same Wi-Fi.</p>
+    <div class="callout"><strong>Going beyond your home network?</strong> Put the server behind HTTPS (for example Caddy or nginx with Let's Encrypt) and use a strong <code>JWT_SECRET</code>. The server won't start in production without one.</div>
+
+    <h3>Settings</h3>
+    <div class="table-scroll"><table>
+      <thead><tr><th>Variable</th><th>Default</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>DATABASE_URL</code></td><td><code>postgres://localhost:5432/myfiles</code></td><td>PostgreSQL connection</td></tr>
+        <tr><td><code>JWT_SECRET</code></td><td>dev placeholder</td><td>Signs sign-in tokens. <strong>Required</strong> when <code>NODE_ENV=production</code></td></tr>
+        <tr><td><code>PORT</code> / <code>HOST</code></td><td><code>4000</code> / <code>0.0.0.0</code></td><td>Where the API listens</td></tr>
+        <tr><td><code>BLOB_DIR</code></td><td><code>./blobs</code></td><td>Where uploaded page images are stored</td></tr>
+        <tr><td><code>MAX_IMAGE_BYTES</code></td><td>15 MB</td><td>Largest page image accepted</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>API</h3>
+    <div class="table-scroll"><table>
+      <thead><tr><th>Endpoint</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>POST /api/auth/register</code>, <code>/api/auth/login</code></td><td>Email + password → sign-in token</td></tr>
+        <tr><td><code>GET /api/sync/pull?cursor=N</code></td><td>Everything changed since <code>N</code>, deletions included, in pages</td></tr>
+        <tr><td><code>POST /api/sync/push</code></td><td>Send local changes (newest edit wins)</td></tr>
+        <tr><td><code>PUT / GET /api/pages/:id/image</code></td><td>Upload or download a page scan</td></tr>
+        <tr><td><code>GET /api/documents/:id/pdf</code></td><td>A document's pages as one PDF</td></tr>
+        <tr><td><code>GET /api/search?q=…</code></td><td>Full-text search on the server</td></tr>
+        <tr><td><code>GET /api/labels/F-0042.svg</code></td><td>One printable label (no sign-in needed; labels contain no private data)</td></tr>
+        <tr><td><code>GET /api/labels/sheet.svg?prefix=F-&amp;from=1&amp;count=10</code></td><td>An A4 sheet of numbered labels</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ================================================================ FAQ -->
+<section role="tabpanel" id="faq" aria-labelledby="t-faq" hidden>
+  <div class="wrap">
+    <p class="eyebrow">Questions</p>
+    <h2>FAQ</h2>
+    <details><summary>Do I need internet or an account?</summary><div>No. Scanning, text reading, search, labels and PDFs all work offline with no account. You only need a network and an account on your own server if you want backup or several devices.</div></details>
+    <details><summary>Where are my scans stored?</summary><div>On your phone, inside the app's private storage. If you connect a server, copies are also kept on that server, which you run yourself. MyFiles has no central cloud.</div></details>
+    <details><summary>Can it read handwriting?</summary><div>On iPhone, Apple's Vision framework reads handwritten file numbers well. On Android, ML Kit is tuned for printed text, so use the printed QR label for the most reliable results. Document text itself (bills, letters, forms) is usually printed and reads well on both.</div></details>
+    <details><summary>Which languages are recognised?</summary><div>On iPhone, Vision picks the language automatically from those it supports. The Android build uses ML Kit's Latin-script model. Search works on any text the phone recognises.</div></details>
+    <details><summary>What happens if I edit the same document on two phones while offline?</summary><div>When both sync, the most recent edit to each item wins. Files with the same number merge into one. Deletions sync to every device.</div></details>
+    <details><summary>What if I sign out?</summary><div>Your documents stay on the phone. Be careful signing in to a <em>different</em> account afterwards: the documents already on the phone will be uploaded into that account.</div></details>
+    <details><summary>Is it in the App Store / Play Store?</summary><div>Not yet. For now you build it yourself; see <a href="#install" data-tab-link="install">Install</a>.</div></details>
+    <details><summary>What is it built with?</summary><div>The phone app is written in C on <strong>SDL3</strong>, with SQLite (FTS5) for storage and search, cJSON, and a QR code generator. Scanning and text reading use Apple VisionKit/Vision on iPhone and Google ML Kit on Android. The server uses Node.js, Hapi and PostgreSQL.</div></details>
+
+    <h2 style="margin-top:56px">Community</h2>
+    <p class="lead">MyFiles is young. Ideas, bug reports and help are all welcome, especially with the Android build.</p>
+    <div class="grid g3">
+      <a class="card" href="https://github.com/rORrEtboLt/MyFiles/issues" rel="noopener" style="text-decoration:none"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg></div><h3>Report a bug or ask</h3><p>Open an issue on GitHub. Screenshots and your phone model help a lot.</p></a>
+      <a class="card" href="https://github.com/rORrEtboLt/MyFiles" rel="noopener" style="text-decoration:none"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg></div><h3>Read the code</h3><p>The app, server, tests and this website all live in one repository.</p></a>
+      <a class="card" href="https://github.com/rORrEtboLt/MyFiles/fork" rel="noopener" style="text-decoration:none"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="5" r="2"/><circle cx="18" cy="5" r="2"/><circle cx="12" cy="19" r="2"/><path d="M6 7v2a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7M12 12v5"/></svg></div><h3>Contribute</h3><p>Fork it, try the Android build, improve handwriting matching, or translate the app.</p></a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>MyFiles · offline first, cloud if you want it.</span>
+    <span><a href="https://github.com/rORrEtboLt/MyFiles">GitHub</a> · <a href="https://github.com/rORrEtboLt/MyFiles/issues">Issues</a> · Fonts: Noto Sans (SIL OFL)</span>
+  </div>
+</footer>
+
+<script>
+(() => {
+  // ---- top-level tabs, synced with the URL hash so links can be shared ----
+  const tabs = [...document.querySelectorAll('nav.tabs [role="tab"]')];
+  const ids = tabs.map((t) => t.getAttribute('aria-controls'));
+
+  function show(id, focus) {
+    if (!ids.includes(id)) id = 'home';
+    tabs.forEach((t) => {
+      const on = t.getAttribute('aria-controls') === id;
+      t.setAttribute('aria-selected', on);
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+      if (on) {
+        if (focus) t.focus();
+        t.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      }
+    });
+    document.title = id === 'home' ? 'MyFiles – find any paper in seconds'
+      : `${tabs[ids.indexOf(id)].textContent} – MyFiles`;
+  }
+
+  function go(id) {
+    if (location.hash !== '#' + id) history.pushState(null, '', '#' + id);
+    show(id);
+    window.scrollTo({ top: 0 });
+  }
+
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => go(t.getAttribute('aria-controls')));
+    t.addEventListener('keydown', (e) => {
+      const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (!d) return;
+      e.preventDefault();
+      const next = tabs[(i + d + tabs.length) % tabs.length];
+      go(next.getAttribute('aria-controls'));
+      next.focus();
+    });
+  });
+  document.querySelectorAll('[data-tab-link]').forEach((a) =>
+    a.addEventListener('click', (e) => { e.preventDefault(); go(a.dataset.tabLink); }));
+  // The browser jumps to the section whose id matches the hash; start at the top instead.
+  window.addEventListener('popstate', () => { show(location.hash.slice(1)); window.scrollTo(0, 0); });
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  show(location.hash.slice(1));
+  window.scrollTo(0, 0);
+
+  // ---- platform switcher on the Install tab ----
+  const segs = [...document.querySelectorAll('.seg [data-platform]')];
+  const panels = [...document.querySelectorAll('.platform')];
+  function platform(p) {
+    segs.forEach((b) => b.setAttribute('aria-selected', b.dataset.platform === p));
+    panels.forEach((el) => { el.hidden = el.dataset.platform !== p; });
+    try { localStorage.setItem('myfiles-platform', p); } catch (_) {}
+  }
+  segs.forEach((b) => b.addEventListener('click', () => platform(b.dataset.platform)));
+  let saved = null;
+  try { saved = localStorage.getItem('myfiles-platform'); } catch (_) {}
+  platform(saved || (/android/i.test(navigator.userAgent) ? 'android' : 'ios'));
+
+  // ---- theme toggle (system by default) ----
+  const root = document.documentElement;
+  try { const t = localStorage.getItem('myfiles-theme'); if (t) root.dataset.theme = t; } catch (_) {}
+  document.getElementById('theme').addEventListener('click', () => {
+    const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    root.dataset.theme = dark ? 'light' : 'dark';
+    try { localStorage.setItem('myfiles-theme', root.dataset.theme); } catch (_) {}
+  });
+})();
+</script>
+</body>
+</html>
